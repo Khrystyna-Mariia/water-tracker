@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import Tips from './Tips'
 
 function App() {
   //  При завантаженні намагаємось взяти дані з пам'яті, якщо їх немає — ставимо 0
@@ -38,6 +39,7 @@ function App() {
         <button onClick={addWater} className="btn-add">+ 250 мл</button>
         <button onClick={removeWater} className="btn-remove">- 250 мл</button>
       </div>
+      <Tips />
       <button onClick={resetWater} className="btn-reset">Скинути день</button>
     </div>
   )

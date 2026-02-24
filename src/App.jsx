@@ -24,7 +24,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1>🌊 Water Balance </h1>
+      <h1>🌊 Water Tracker Classic </h1>
       <div className="status-board">
         <p className="amount">{water} / {goal} мл</p>
         <div className="progress-bar-bg">

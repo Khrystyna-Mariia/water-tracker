@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Результати тестів та звіти
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+coverage/

@@ -13,7 +13,7 @@ describe('Water Tracker Logic', () => {
   // Тест 1: Початковий стан
   it('відображає початкову кількість води (0 мл)', () => {
     render(<App />);
-    expect(screen.getByText(/999 \/ 2000 мл/i)).toBeInTheDocument();
+    expect(screen.getByText(/0 \/ 2000 мл/i)).toBeInTheDocument();
   });
 
   // Тест 2: Додавання води

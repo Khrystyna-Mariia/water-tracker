@@ -30,6 +30,7 @@ function App() {
       <h1>🌊 Water Balance </h1>
       <div className="status-board">
         <p className="amount">{water} / {goal} мл</p>
+        <p>Випито склянок: {Math.floor(water / 250)}</p>
         <div className="progress-bar-bg">
           <div 
             className="progress-bar-fill" 

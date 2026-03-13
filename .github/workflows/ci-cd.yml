@@ -34,7 +34,7 @@ jobs:
 
       - name: Run unit tests
         # Додаємо фільтр, щоб Vitest запускав тести тільки з папки src/
-        run: npm run test -- src/ --watch=false
+        run: npm run test -- --watch=false
 
       - name: Build project
         run: npm run build

@@ -1,6 +1,9 @@
 # 💧 Water Tracker
+[![CI/CD Pipeline](https://github.com/Khrystyna-Mariia/water-tracker/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Khrystyna-Mariia/water-tracker/actions/workflows/ci-cd.yml)
 
 Додаток для контролю денної норми споживання води. 
+
+**Жива версія:** [https://water-tracker-iota-roan.vercel.app/](https://water-tracker-iota-roan.vercel.app/)
 
 ## Функціонал (MVP)
 * Додавання та віднімання об'єму води (крок 250 мл).

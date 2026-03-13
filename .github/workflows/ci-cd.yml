@@ -1,0 +1,52 @@
+name: CI/CD Pipeline
+
+# Тригери: коли запускати автоматизацію
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Отримання коду з репозиторію
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Встановлення Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # 3. Встановлення залежностей
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Перевірка лінтером
+      - name: Run lint
+        run: npm run lint
+
+      # 5. Запуск тестів
+      - name: Run tests
+        run: npm run test -- --watch=false
+
+      # 6. Збірка проєкту (Артефакт)
+      - name: Build project
+        run: npm run build
+
+      # 7. Збереження артефакту збірки
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist

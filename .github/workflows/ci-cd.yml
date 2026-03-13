@@ -1,0 +1,49 @@
+name: CI/CD Pipeline
+
+# Тригери: коли запускати автоматизацію
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24 # Оновлюємо до 24 версії, щоб прибрати попередження
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run unit tests
+        # Додаємо фільтр, щоб Vitest запускав тести тільки з папки src/
+        run: npm run test -- --watch=false
+
+      - name: Build project
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist

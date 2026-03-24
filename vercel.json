@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/ingest/static/:path*",
+      "destination": "https://eu.i.posthog.com/static/:path*"
+    },
+    {
+      "source": "/ingest/e/:path*",
+      "destination": "https://eu.i.posthog.com/e/:path*"
+    },
+    {
+      "source": "/ingest/:path*",
+      "destination": "https://eu.i.posthog.com/:path*"
+    }
+  ]
+}

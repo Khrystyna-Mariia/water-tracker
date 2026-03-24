@@ -5,7 +5,7 @@ import App from './App.jsx'
 import { PostHogProvider } from '@posthog/react'
 
 const options = {
-  api_host: iwindow.location.origin + '/api/v-status',
+  api_host: window.location.origin + '/api/v-status',
   defaults: 'always',
 }
 

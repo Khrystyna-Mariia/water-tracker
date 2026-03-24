@@ -1,10 +1,8 @@
 export default async function handler(req, res) {
-  // Отримуємо параметри запиту (наприклад, ?ip=0...)
-  const { url } = req;
-  const posthogPath = url.replace('/api/v-status', '');
-  
-  // Формуємо повну адресу до PostHog
-  const targetUrl = `https://eu.i.posthog.com${posthogPath || '/'}`;
+  // PostHog SDK додає шлях після /v-status, наприклад /e/ або /decide/
+  // Ми отримуємо повний URL і замінюємо наш проксі-шлях на оригінальний
+  const targetPath = req.url.replace('/api/v-status', '');
+  const targetUrl = `https://eu.i.posthog.com${targetPath}`;
 
   try {
     const response = await fetch(targetUrl, {
@@ -13,11 +11,12 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         'X-Forwarded-For': req.headers['x-forwarded-for'] || '',
       },
-      // Передаємо тіло запиту, якщо це POST
       body: req.method === 'POST' ? JSON.stringify(req.body) : undefined,
     });
 
     const data = await response.json();
+    
+    // Важливо: копіюємо статус і дані назад клієнту
     res.status(response.status).json(data);
   } catch (error) {
     res.status(500).json({ error: 'Proxy error', details: error.message });

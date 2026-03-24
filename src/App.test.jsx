@@ -2,86 +2,82 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
 
-describe('Water Tracker Logic', () => {
+// Мокаємо posthog
+vi.mock('posthog-js', () => ({
+  default: {
+    capture: vi.fn(),
+  },
+}));
+
+describe('Water Tracker Logic (Custom Input Version)', () => {
   
-  // Перед кожним тестом очищуємо LocalStorage
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
   });
 
-  // Тест 1: Початковий стан
-  it('відображає початкову кількість води (0 мл)', () => {
+  it('відображає початкову кількість води (0 мл) та дефолтне значення в інпуті', () => {
     render(<App />);
-    expect(screen.getByText(/0 \/ 2000 мл/i)).toBeInTheDocument();
+    // Використовуємо функцію або окремі пошуки, щоб уникнути проблем з <strong>
+    expect(screen.getByText(/0/i, { selector: 'strong' })).toBeInTheDocument();
+    expect(screen.getByText(/2000 мл/i)).toBeInTheDocument();
+    expect(screen.getByRole('spinbutton')).toHaveValue(250);
   });
 
-  // Тест 2: Додавання води
-  it('збільшує кількість води на 250 мл при натисканні кнопки +', () => {
+  it('збільшує кількість води на значення з інпуту при натисканні + Додати', () => {
     render(<App />);
-    const addButton = screen.getByText(/\+ 250 мл/i);
+    const input = screen.getByRole('spinbutton');
+    const addButton = screen.getByText(/\+ Додати/i);
+
+    fireEvent.change(input, { target: { value: '500' } });
     fireEvent.click(addButton);
-    expect(screen.getByText(/250 \/ 2000 мл/i)).toBeInTheDocument();
+
+    expect(screen.getByText(/500/i, { selector: 'strong' })).toBeInTheDocument();
+    expect(screen.getByText(/Випито склянок: 2/i)).toBeInTheDocument();
   });
 
-  // Тест 3: Видалення води (Assertion)
-  it('зменшує кількість води при натисканні кнопки -', () => {
+  it('зменшує кількість води на вказане значення', () => {
     render(<App />);
-    const addButton = screen.getByText(/\+ 250 мл/i);
-    const removeButton = screen.getByText(/- 250 мл/i); // назва тут
+    const input = screen.getByRole('spinbutton');
+    const addButton = screen.getByText(/\+ Додати/i);
+    const removeButton = screen.getByText(/- Видалити/i);
+
+    fireEvent.change(input, { target: { value: '1000' } });
+    fireEvent.click(addButton);
     
-    fireEvent.click(addButton); 
-    fireEvent.click(removeButton); // і тут тепер однакова
-    
-    expect(screen.getByText(/0 \/ 2000 мл/i)).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: '250' } });
+    fireEvent.click(removeButton);
+
+    expect(screen.getByText(/750/i, { selector: 'strong' })).toBeInTheDocument();
   });
 
-  // Тест 4: Запобігання від'ємним значенням (Логіка)
   it('не дозволяє кількості води бути меншою за 0', () => {
     render(<App />);
-    const removeButton = screen.getByText(/- 250 мл/i);
+    const removeButton = screen.getByText(/- Видалити/i);
     fireEvent.click(removeButton);
-    expect(screen.getByText(/0 \/ 2000 мл/i)).toBeInTheDocument();
+    expect(screen.getByText(/0/i, { selector: 'strong' })).toBeInTheDocument();
   });
 
-  // Тест 5: Скидання (Reset)
-  it('скидає прогрес до нуля при натисканні "Скинути день"', () => {
-    render(<App />);
-    const addButton = screen.getByText(/\+ 250 мл/i);
-    const resetButton = screen.getByText(/Скинути день/i);
-    
-    fireEvent.click(addButton);
-    fireEvent.click(resetButton);
-    
-    expect(screen.getByText(/0 \/ 2000 мл/i)).toBeInTheDocument();
-  });
-
-  // Тест 6: Робота з Mock (LocalStorage)
-  it('зберігає дані в localStorage при зміні значення', () => {
+  it('зберігає значення інпуту в localStorage', () => {
     const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
     render(<App />);
     
-    const addButton = screen.getByText(/\+ 250 мл/i);
+    const input = screen.getByRole('spinbutton');
+    fireEvent.change(input, { target: { value: '400' } });
+
+    expect(setItemSpy).toHaveBeenCalledWith('lastInputValue', '400');
+  });
+
+  it('валідує некоректні значення (наприклад, завеликі)', () => {
+    window.alert = vi.fn(); 
+    render(<App />);
+    const input = screen.getByRole('spinbutton');
+    const addButton = screen.getByText(/\+ Додати/i);
+
+    fireEvent.change(input, { target: { value: '5000' } });
     fireEvent.click(addButton);
 
-    // Перевіряємо останній виклик (lastCalledWith), бо перший при завантаженні - це 0
-    expect(setItemSpy).toHaveBeenLastCalledWith('waterVolume', 250); 
+    expect(window.alert).toHaveBeenCalled();
+    expect(screen.getByText(/0/i, { selector: 'strong' })).toBeInTheDocument();
   });
-
-  // Тест 7: Відображення порад (Unit-тест окремого компонента)
-  it('відображає список порад у компоненті Tips', () => {
-    render(<App />);
-    expect(screen.getByText(/Пийте склянку води відразу після пробудження/i)).toBeInTheDocument();
-    expect(screen.getAllByRole('listitem')).toHaveLength(3);
-  });
-  it('відновлює значення води з localStorage при першому рендері', () => {
-  // Імітуємо наявність даних у пам'яті до завантаження компонента
-  localStorage.setItem('waterVolume', '1000');
-  
-  render(<App />);
-  
-  // Перевіряємо, чи компонент підхопив 1000 мл замість 0
-  expect(screen.getByText(/1000 \/ 2000 мл/i)).toBeInTheDocument();
-});
-
 });

@@ -5,7 +5,7 @@ import App from './App.jsx'
 import { PostHogProvider } from '@posthog/react'
 
 const options = {
-  api_host: window.location.origin + '/ingest',
+  api_host:'/ingest',
   defaults: 'always',
 }
 

@@ -10,4 +10,13 @@ export default defineConfig({
     setupFiles: './src/setupTests.js',
     exclude: ['**/node_modules/**', '**/dist/**', '**/tests/**'],
   },
+  server: {
+  proxy: {
+    '/api/v-status': {
+      target: 'https://eu.i.posthog.com',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api\/v-status/, ''),
+    },
+  },
+},
 })

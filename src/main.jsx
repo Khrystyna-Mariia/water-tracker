@@ -5,8 +5,8 @@ import App from './App.jsx'
 import { PostHogProvider } from '@posthog/react'
 
 const options = {
-  api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
-  defaults: '2026-01-30',
+  api_host: iwindow.location.origin + '/api/v-status',
+  defaults: 'always',
 }
 
 createRoot(document.getElementById('root')).render(

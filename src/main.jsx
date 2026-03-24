@@ -5,7 +5,7 @@ import App from './App.jsx'
 import { PostHogProvider } from '@posthog/react'
 
 const options = {
-  api_host: '/ingest',
+  api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
   defaults: '2026-01-30',
 }
 

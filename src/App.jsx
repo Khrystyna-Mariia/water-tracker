@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import Tips from './Tips'
+import posthog from 'posthog-js'
 
 function App() {
   //  При завантаженні намагаємось взяти дані з пам'яті, якщо їх немає — ставимо 0

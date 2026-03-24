@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/ingest/:path*",
-      "destination": "https://eu.i.posthog.com/:path*"
-    }
-  ]
-}

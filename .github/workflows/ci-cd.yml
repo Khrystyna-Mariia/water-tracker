@@ -1,47 +1,59 @@
+# Назва пайплайну, яка буде відображатися на вкладці Actions
 name: CI/CD Pipeline
 
-# Тригери: коли запускати автоматизацію
+# Тригери: визначають події, які запускають автоматизацію
 on:
   push:
+    # Запуск при кожному завантаженні коду в основні гілки
     branches:
       - main
       - develop
   pull_request:
+    # Запуск при створенні запиту Pull Request
     branches:
       - main
       - develop
 
+# Список завдань (jobs), які будуть виконуватися
 jobs:
   build-and-test:
     name: Build and Test
+    # Вибір віртуального середовища (runner)
     runs-on: ubuntu-latest
 
     steps:
+      # Копіювання коду репозиторію на віртуальну машину
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Встановлення Node.js потрібної версії та кешування залежностей
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24 # Оновлюємо до 24 версії, щоб прибрати попередження
+          node-version: 24 # Використовуємо актуальну стабільну версію
           cache: 'npm'
 
+      # Встановлення пакетів на основі package-lock.json (clean install)
       - name: Install dependencies
         run: npm ci
 
+      # Встановлення браузерів для роботи Playwright (якщо є системні тести)
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
         
+      # Перевірка стилю коду та відсутності синтаксичних помилок
       - name: Run lint
         run: npm run lint
 
+      # Запуск юніт-тестів (Vitest) у неінтерактивному режимі
       - name: Run unit tests
-        # Додаємо фільтр, щоб Vitest запускав тести тільки з папки src/
         run: npm run test -- --watch=false
 
+      # Складання проєкту у фінальний бандл (папка dist)
       - name: Build project
         run: npm run build
 
+      # Збереження результатів збірки як артефакту GitHub
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:

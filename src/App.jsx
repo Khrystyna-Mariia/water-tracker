@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import Tips from './Tips'
+import posthog from 'posthog-js'
 
 function App() {
   //  При завантаженні намагаємось взяти дані з пам'яті, якщо їх немає — ставимо 0
@@ -16,9 +17,34 @@ function App() {
     localStorage.setItem('waterVolume', water);
   }, [water]);
 
-  const addWater = () => setWater(water + 250);
-  const removeWater = () => setWater(water > 0 ? water - 250 : 0);
-  const resetWater = () => setWater(0);
+  const addWater = () => {
+    const newAmount = water + 250;
+    setWater(newAmount);
+
+    posthog.capture('water_added', {
+      amount: 250,
+      total_now: newAmount,
+      goal_reached: newAmount >= goal
+    });
+  };
+  const removeWater = () => {
+    if (water > 0) {
+      const newAmount = water - 250;
+      setWater(newAmount);
+
+      posthog.capture('water_removed', {
+        reason: 'correction',
+        removed_amount: 250
+      });
+    }
+  };
+  const resetWater = () => {
+    posthog.capture('day_reset', {
+      final_volume: water,
+      percentage_reached: Math.round((water / goal) * 100)
+    });
+    setWater(0);
+  };
 
   const progressPercentage = Math.min((water / goal) * 100, 100);
 

@@ -4,45 +4,56 @@ import Tips from './Tips'
 import posthog from 'posthog-js'
 
 function App() {
-  //  При завантаженні намагаємось взяти дані з пам'яті, якщо їх немає — ставимо 0
   const [water, setWater] = useState(() => {
     const saved = localStorage.getItem('waterVolume');
     return saved ? parseInt(saved) : 0;
   });
 
+  const [inputValue, setInputValue] = useState(() => {
+    const savedInput = localStorage.getItem('lastInputValue');
+    return savedInput ? savedInput : '250';
+  });
+
   const goal = 2000;
 
-  // спрацьовує, коли змінюється змінна 'water'
   useEffect(() => {
     localStorage.setItem('waterVolume', water);
-  }, [water]);
+    localStorage.setItem('lastInputValue', inputValue);
+  }, [water, inputValue]);
 
-  const addWater = () => {
-    const newAmount = water + 250;
-    setWater(newAmount);
-
-    posthog.capture('water_added', {
-      amount: 250,
-      total_now: newAmount,
-      goal_reached: newAmount >= goal
-    });
-  };
-  const removeWater = () => {
-    if (water > 0) {
-      const newAmount = water - 250;
-      setWater(newAmount);
-
-      posthog.capture('water_removed', {
-        reason: 'correction',
-        removed_amount: 250
-      });
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value);
+    if (e.target.value.length === 1) {
+      posthog.capture('started_typing_amount');
     }
   };
+
+  const updateWater = (type) => {
+    const amount = parseInt(inputValue);
+    
+    if (isNaN(amount) || amount <= 0 || amount > 3000) {
+      alert("Введіть коректну кількість (1-3000 мл)");
+      posthog.capture('action_failed', { reason: 'invalid_amount', type });
+      return;
+    }
+
+    if (type === 'add') {
+      const newAmount = water + amount;
+      setWater(newAmount);
+      posthog.capture('water_added', { 
+        amount: amount, 
+        total: newAmount,
+        goal_reached: newAmount >= goal 
+      });
+    } else {
+      const newAmount = water > amount ? water - amount : 0;
+      setWater(newAmount);
+      posthog.capture('water_removed', { amount: amount });
+    }
+  };
+
   const resetWater = () => {
-    posthog.capture('day_reset', {
-      final_volume: water,
-      percentage_reached: Math.round((water / goal) * 100)
-    });
+    posthog.capture('day_reset', { final_volume: water });
     setWater(0);
   };
 
@@ -53,22 +64,32 @@ function App() {
       <div className="status-banner">
         <p>Статус: {import.meta.env.VITE_APP_STATUS}</p>
       </div>
-      <h1>🌊 Water Balance </h1>
+      
+      <h1>🌊 Water Balance</h1>
+      
       <div className="status-board">
-        <p className="amount">{water} / {goal} мл</p>
-        <p>Випито склянок: {Math.floor(water / 250)}</p>
+        <p className="amount"><strong>{water}</strong> / {goal} мл</p>
+        <p className="glasses-count">🥛 Випито склянок: {Math.floor(water / 250)}</p>
+        
         <div className="progress-bar-bg">
-          <div 
-            className="progress-bar-fill" 
-            style={{ width: `${progressPercentage}%` }}
-          ></div>
+          <div className="progress-bar-fill" style={{ width: `${progressPercentage}%` }}></div>
         </div>
         <p className="percentage">{Math.round(progressPercentage)}% виконано</p>
       </div>
-      <div className="buttons-group">
-        <button onClick={addWater} className="btn-add">+ 250 мл</button>
-        <button onClick={removeWater} className="btn-remove">- 250 мл</button>
+
+      <div className="control-section">
+        <input 
+          type="number" 
+          value={inputValue} 
+          onChange={handleInputChange} 
+          className="water-input"
+        />
+        <div className="buttons-group">
+          <button onClick={() => updateWater('add')} className="btn-add">+ Додати</button>
+          <button onClick={() => updateWater('remove')} className="btn-remove">- Видалити</button>
+        </div>
       </div>
+
       <Tips />
       <button onClick={resetWater} className="btn-reset">Скинути день</button>
     </div>

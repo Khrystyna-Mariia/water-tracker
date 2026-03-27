@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import Tips from './Tips'
 import posthog from 'posthog-js'
+import { useFeatureFlagEnabled } from 'posthog-js/react'
+import confetti from 'canvas-confetti' 
 
 function App() {
   const [water, setWater] = useState(() => {
@@ -14,12 +16,25 @@ function App() {
     return savedInput ? savedInput : '250';
   });
 
+  // Отримуємо стан прапорця з PostHog
+  const isCelebrationEnabled = useFeatureFlagEnabled('celebration-mode');
+
   const goal = 2000;
 
   useEffect(() => {
     localStorage.setItem('waterVolume', water);
     localStorage.setItem('lastInputValue', inputValue);
-  }, [water, inputValue]);
+
+    // Логіка celebration-mode
+    if (isCelebrationEnabled && water >= goal) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#3b82f6', '#ea1c1c', '#6deb74', '#FFD700']
+      });
+    }
+  }, [water, inputValue, isCelebrationEnabled]);
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
@@ -59,6 +74,9 @@ function App() {
 
   const progressPercentage = Math.min((water / goal) * 100, 100);
 
+  // Динамічний стиль для прогрес-бару (золотий, якщо прапорець увімкнено і мета досягнута)
+  const barColor = (isCelebrationEnabled && water >= goal) ? '#FFD700' : '#3b82f6';
+
   return (
     <div className="app-container">
       <div className="status-banner">
@@ -66,13 +84,27 @@ function App() {
       </div>
       
       <h1>🌊 Water Balance</h1>
+
+      {/* Показуємо вітання, якщо прапорець увімкнено */}
+      {isCelebrationEnabled && water >= goal && (
+        <div className="celebration-text">
+          <h2>🌟 Ціль досягнута! 🌟</h2>
+        </div>
+      )}
       
       <div className="status-board">
         <p className="amount"><strong>{water}</strong> / {goal} мл</p>
         <p className="glasses-count">🥛 Випито склянок: {Math.floor(water / 250)}</p>
         
         <div className="progress-bar-bg">
-          <div className="progress-bar-fill" style={{ width: `${progressPercentage}%` }}></div>
+          <div 
+            className="progress-bar-fill" 
+            style={{ 
+                width: `${progressPercentage}%`,
+                backgroundColor: barColor, // Міняємо колір
+                boxShadow: (isCelebrationEnabled && water >= goal) ? '0 0 15px #ffc800' : 'none'
+            }}
+          ></div>
         </div>
         <p className="percentage">{Math.round(progressPercentage)}% виконано</p>
       </div>

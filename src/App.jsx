@@ -7,6 +7,41 @@ import confetti from 'canvas-confetti'
 import * as Sentry from '@sentry/react'; 
 
 function App() {
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('app_user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  // Синхронізація з Sentry при зміні користувача
+  useEffect(() => {
+    if (user) {
+      Sentry.setUser({
+        id: user.id,
+        email: user.email,
+        username: user.name
+      });
+      localStorage.setItem('app_user', JSON.stringify(user));
+    } else {
+      Sentry.setUser(null);
+      localStorage.removeItem('app_user');
+    }
+  }, [user]);
+
+  const handleMockLogin = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const newUser = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: formData.get('username'),
+      email: formData.get('email'),
+    };
+    setUser(newUser);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+  };
+
   const [water, setWater] = useState(() => {
     const saved = localStorage.getItem('waterVolume');
     return saved ? parseInt(saved) : 0;
@@ -80,6 +115,24 @@ function App() {
 
   return (
     <div className="app-container">
+      {!user ? (
+        <div className="login-overlay">
+          <div className="login-card">
+            <h1>🌊 Вхід у систему</h1>
+            <form onSubmit={handleMockLogin}>
+              <input name="username" placeholder="Ваше ім'я" required className="water-input" />
+              <input name="email" type="email" placeholder="Ваш Email" required className="water-input" />
+              <button type="submit" className="btn-add" style={{width: '100%', marginTop: '10px'}}>Увійти</button>
+            </form>
+          </div>
+        </div>
+      ) : (
+        <div className="main-content">
+          <div className="user-header">
+            <span>{user.name} ({user.email})</span>
+            <button onClick={() => setUser(null)} className="btn-logout-small">Вийти</button>
+          </div>
+
       <div className="status-banner">
         <p>Статус: {import.meta.env.VITE_APP_STATUS}</p>
       </div>
@@ -92,7 +145,7 @@ function App() {
       }}>
       Break the world
       </button>
-      
+
       {/* Показуємо вітання, якщо прапорець увімкнено */}
       {isCelebrationEnabled && water >= goal && (
         <div className="celebration-text">
@@ -132,6 +185,8 @@ function App() {
 
       <Tips />
       <button onClick={resetWater} className="btn-reset">Скинути день</button>
+    </div>
+    )}
     </div>
   )
 }

@@ -3,7 +3,8 @@ import './App.css'
 import Tips from './Tips'
 import posthog from 'posthog-js'
 import { useFeatureFlagEnabled } from 'posthog-js/react'
-import confetti from 'canvas-confetti' 
+import confetti from 'canvas-confetti'
+import * as Sentry from '@sentry/react'; 
 
 function App() {
   const [water, setWater] = useState(() => {
@@ -85,6 +86,13 @@ function App() {
       
       <h1>🌊 Water Balance</h1>
 
+      <button
+      onClick={() => {
+        throw new Error('This is your first error!');
+      }}>
+      Break the world
+      </button>
+      
       {/* Показуємо вітання, якщо прапорець увімкнено */}
       {isCelebrationEnabled && water >= goal && (
         <div className="celebration-text">

@@ -137,7 +137,7 @@ function App() {
 
       <button
       onClick={() => {
-        throw new Error('This is your first error!');
+        throw new Error('This is your second error!');
       }}>
       Break the world
       </button>

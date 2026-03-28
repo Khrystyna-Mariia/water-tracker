@@ -2,6 +2,14 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import App from './App';
 
+// 1. Мокаємо Sentry (щоб тести не падали через виклики Sentry.setUser)
+vi.mock('@sentry/react', () => ({
+  setUser: vi.fn(),
+  init: vi.fn(),
+  browserTracingIntegration: vi.fn(),
+  replayIntegration: vi.fn(),
+}));
+
 // Мокаємо posthog
 vi.mock('posthog-js', () => ({
   default: {
@@ -14,6 +22,11 @@ describe('Water Tracker Logic (Custom Input Version)', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+
+    // Створюємо фейкового користувача в localStorage
+    // Це дозволить тестам "проскочити" екран логіну
+    const mockUser = { id: '123', name: 'Test User', email: 'test@example.com' };
+    localStorage.setItem('app_user', JSON.stringify(mockUser));
   });
 
   it('відображає початкову кількість води (0 мл) та дефолтне значення в інпуті', () => {

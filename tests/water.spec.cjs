@@ -1,6 +1,22 @@
 const { test, expect } = require('@playwright/test');
 
 test.describe('E2E: Custom Water Tracker', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:5173');
+
+    // Перевіряємо, чи ми на сторінці логіну
+    const loginHeader = page.getByText('🌊 Вхід у систему');
+    
+    if (await loginHeader.isVisible()) {
+      // Заповнюємо форму входу
+      await page.getByPlaceholder("Ваше ім'я").fill('Khrystyna');
+      await page.getByPlaceholder("Ваш Email").fill('khrystyna@example.com');
+      await page.getByRole('button', { name: 'Увійти' }).click();
+    }
+
+    // Чекаємо, поки з'явиться головний інтерфейс (заголовок програми)
+    await expect(page.getByText('🌊 Water Balance')).toBeVisible();
+  });
   
   test('Користувач може вводити довільну кількість та зберігати її', async ({ page }) => {
     await page.goto('http://localhost:5173');

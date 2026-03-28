@@ -38,10 +38,6 @@ function App() {
     setUser(newUser);
   };
 
-  const handleLogout = () => {
-    setUser(null);
-  };
-
   const [water, setWater] = useState(() => {
     const saved = localStorage.getItem('waterVolume');
     return saved ? parseInt(saved) : 0;
